@@ -3,3 +3,5 @@ export {
 } from "./reactive"
 
 export { effect } from "./effect"
+
+export { ref, toRefs, toRef } from "./ref"

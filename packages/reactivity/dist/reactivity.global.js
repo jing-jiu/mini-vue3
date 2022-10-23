@@ -214,11 +214,74 @@ var VueReactivity = (function (exports) {
         return proxy;
     }
 
+    // ref本质就是给基本类型外面包一层
+    function ref(value) {
+        return createRef(value);
+    }
+    function createRef(rawValue, shallow = false) {
+        return new RefImpl(rawValue, shallow);
+    }
+    // 通过reactive追加响应式 proxy
+    const convert = (val) => isObject(val) ? reactive(val) : val;
+    class RefImpl {
+        _rawValue;
+        _shallow;
+        _value;
+        _v_isRef = true;
+        constructor(_rawValue, _shallow) {
+            this._rawValue = _rawValue;
+            this._shallow = _shallow;
+            this._value = _shallow ? _rawValue : convert(_rawValue);
+        }
+        get value() {
+            track(this, "get" /* TrackOpTypes.GET */, "value");
+            return this._value;
+        }
+        set value(newVal) {
+            if (hasChanged(newVal, this._rawValue)) {
+                this._rawValue = newVal; // 保存oldValue
+                this._value = this._shallow ? newVal : convert(newVal);
+                trigger(this, "set" /* TriggerOpTypes.SET */, "value", newVal);
+            }
+        }
+    }
+    class ObjectRefImpl {
+        _object;
+        _key;
+        _v_isRef = true;
+        constructor(_object, _key) {
+            this._object = _object;
+            this._key = _key;
+        }
+        get value() {
+            return Reflect.get(this._object, this._key);
+        }
+        set value(newVal) {
+            Reflect.set(this._object, this._key, newVal);
+        }
+    }
+    // 可以结构数据而不失去响应式
+    // 将对象中的属性转换成ref属性
+    function toRef(object, key) {
+        return new ObjectRefImpl(object, key);
+    }
+    // 将对象转成ref
+    function toRefs(object) {
+        const ret = isArray(object) ? new Array(object.length) : {};
+        for (const key in object) {
+            ret[key] = toRef(object, key);
+        }
+        return ret;
+    }
+
     exports.effect = effect;
     exports.reactive = reactive;
     exports.readonly = readonly;
+    exports.ref = ref;
     exports.shallowReactive = shallowReactive;
     exports.shallowReadonly = shallowReadonly;
+    exports.toRef = toRef;
+    exports.toRefs = toRefs;
 
     Object.defineProperty(exports, '__esModule', { value: true });
 

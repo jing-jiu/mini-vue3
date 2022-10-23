@@ -10,21 +10,32 @@
         <div id="app"></div>
         <script src="./node_modules/@vue/reactivity/dist/reactivity.global.js"></script>
         <script type="module">
+            const app = document.getElementById("app");
+
             const {
                 reactive,
                 readonly,
                 shallowReactive,
                 shallowReadonly,
                 effect,
+                ref,
+                toRefs,
             } = VueReactivity;
-            const state = reactive({ name: "hxh", age: [20, 21] });
-            const app = document.getElementById("app");
+            function useFeatureX() {
+                const state = reactive({
+                    foo: 1,
+                    bar: 2,
+                });
+                return toRefs(state);
+            }
+            const { foo, bar } = useFeatureX();
             effect(() => {
-                app.innerHTML = state.name + state.age;
+                app.innerHTML = foo.value + bar.value;
             });
             setTimeout(() => {
-                state.age = [...state.age, 22];
-            }, 500);
+                foo.value = 2;
+                bar.value = "2";
+            }, 1000);
         </script>
     </body>
 </html>
