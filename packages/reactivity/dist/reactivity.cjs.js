@@ -88,13 +88,18 @@ function trigger(target, type, key, newValue, oldValue) {
         if (key !== void 0) {
             add(depsMap.get(key));
         }
+        /**
+         * let arr = [1,2,3]
+         * 收集 0,1,2,length
+         * arr[3] = 4
+         * 需要收集索引3 但是显然上面不会收集到需要做其他处理
+         */
         switch (type) {
+            // 上述情况会触发length 所以触发length的更新
             case "add" /* TriggerOpTypes.ADD */:
-                if (isArray(target)) {
-                    if (isIntegerKey(key)) {
-                        // 给数组新增书属性 触发length
-                        add(depsMap.get("length"));
-                    }
+                if (isArray(target) && isIntegerKey(key)) {
+                    // 给数组新增书属性 触发length
+                    add(depsMap.get("length"));
                 }
                 break;
         }
