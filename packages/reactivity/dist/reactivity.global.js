@@ -11,6 +11,7 @@ var VueReactivity = (function (exports) {
     const hasOwnProperty = Object.prototype.hasOwnProperty;
     const hasOwn = (val, key) => hasOwnProperty.call(val, key);
     const hasChanged = (value, oldValue) => !Object.is(value, oldValue);
+    const isFunction = (val) => typeof val === 'function';
 
     function effect(fn, options = {}) {
         const _effect = createReactiveEffect(fn, options);
@@ -104,6 +105,9 @@ var VueReactivity = (function (exports) {
             }
         }
         effects.forEach((effect) => {
+            if (effect.options.scheduler) {
+                return effect.options.scheduler(effect);
+            }
             effect();
         });
     }
@@ -274,6 +278,61 @@ var VueReactivity = (function (exports) {
         return ret;
     }
 
+    /**
+     *
+     * @param getterOrOptions
+     * 1.接受一个 getter 函数，返回一个只读的响应式 ref 对象。该 ref 通过 .value 暴露 getter 函数的返回值。
+     * 2.它也可以接受一个带有 get 和 set 函数的对象来创建一个可写的 ref 对象。
+     */
+    class ComputedRefImpl {
+        _setter;
+        _value;
+        _dirty = true; // 默认脏值
+        effect;
+        _v_isRef = true;
+        constructor(getter, _setter) {
+            this._setter = _setter;
+            this.effect = effect(getter, {
+                lazy: true,
+                scheduler: () => {
+                    if (!this._dirty) {
+                        // 依赖属性变化时 标记为脏值触发视图更新
+                        this._dirty = true;
+                        trigger(this, "set" /* TriggerOpTypes.SET */, "value");
+                    }
+                }
+            });
+        }
+        get value() {
+            if (this._dirty) {
+                // 脏值为true 触发更新 执行effect
+                this._value = this.effect();
+                this._dirty = false;
+            }
+            track(this, "get" /* TrackOpTypes.GET */, "value");
+            return this._value;
+        }
+        set value(newVal) {
+            this._setter(newVal);
+        }
+    }
+    function computed(getterOrOptions) {
+        let getter;
+        let setter;
+        if (isFunction(getterOrOptions)) {
+            getter = getterOrOptions;
+            setter = () => {
+                console.warn('computed value is readonly');
+            };
+        }
+        else {
+            getter = getterOrOptions.get;
+            setter = getterOrOptions.set;
+        }
+        return new ComputedRefImpl(getter, setter);
+    }
+
+    exports.computed = computed;
     exports.effect = effect;
     exports.reactive = reactive;
     exports.readonly = readonly;

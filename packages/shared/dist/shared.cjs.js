@@ -12,10 +12,12 @@ const isIntegerKey = (key) => isString(key) &&
 const hasOwnProperty = Object.prototype.hasOwnProperty;
 const hasOwn = (val, key) => hasOwnProperty.call(val, key);
 const hasChanged = (value, oldValue) => !Object.is(value, oldValue);
+const isFunction = (val) => typeof val === 'function';
 
 exports.hasChanged = hasChanged;
 exports.hasOwn = hasOwn;
 exports.isArray = isArray;
+exports.isFunction = isFunction;
 exports.isIntegerKey = isIntegerKey;
 exports.isObject = isObject;
 exports.isString = isString;

@@ -20,22 +20,19 @@
                 effect,
                 ref,
                 toRefs,
+                computed,
             } = VueReactivity;
-            function useFeatureX() {
-                const state = reactive({
-                    foo: 1,
-                    bar: 2,
-                });
-                return toRefs(state);
-            }
-            const { foo, bar } = useFeatureX();
-            effect(() => {
-                app.innerHTML = foo.value + bar.value;
+
+            const count = ref(1);
+            const plusOne = computed({
+                get: () => count.value + 1,
+                set: (val) => {
+                    count.value = val - 1;
+                },
             });
-            setTimeout(() => {
-                foo.value = 2;
-                bar.value = "2";
-            }, 1000);
+
+            plusOne.value = 1;
+            console.log(count.value); //
         </script>
     </body>
 </html>

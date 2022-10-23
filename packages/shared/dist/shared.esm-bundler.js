@@ -8,6 +8,7 @@ const isIntegerKey = (key) => isString(key) &&
 const hasOwnProperty = Object.prototype.hasOwnProperty;
 const hasOwn = (val, key) => hasOwnProperty.call(val, key);
 const hasChanged = (value, oldValue) => !Object.is(value, oldValue);
+const isFunction = (val) => typeof val === 'function';
 
-export { hasChanged, hasOwn, isArray, isIntegerKey, isObject, isString };
+export { hasChanged, hasOwn, isArray, isFunction, isIntegerKey, isObject, isString };
 //# sourceMappingURL=shared.esm-bundler.js.map

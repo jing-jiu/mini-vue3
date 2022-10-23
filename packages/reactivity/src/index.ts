@@ -5,3 +5,5 @@ export {
 export { effect } from "./effect"
 
 export { ref, toRefs, toRef } from "./ref"
+
+export { computed } from "./computed"
